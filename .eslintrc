@@ -1,0 +1,22 @@
+{
+  "parser": "babel-eslint",
+  "extends": [
+    "eslint:recommended"
+  ],
+  "env": {
+    "node": true,
+    "mocha": true,
+    "es6": true
+  },
+  "rules": {
+    "require-yield": "off",
+    "no-unmodified-loop-condition": "error",
+    "no-void": "error",
+    "one-var": ["error", "never"],
+    "no-extra-boolean-cast": "off",
+    "no-shadow": ["warn"],
+  },
+  "plugins": [
+    "mocha"
+  ]
+}

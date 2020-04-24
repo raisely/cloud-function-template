@@ -1,0 +1,27 @@
+{
+  "name": "cloud-function",
+  "version": "1.0.0",
+  "description": "Cloud Function template for Raisely Webhooks",
+  "main": "index.js",
+  "scripts": {
+    "test": "WEBHOOK_SECRET=test API_KEY=raisely_test_key  mocha index.test.js"
+  },
+  "keywords": [
+    "cloud",
+    "function",
+    "template"
+  ],
+  "author": "Raisely",
+  "license": "ISC",
+  "dependencies": {
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.8"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-subset": "^1.6.0",
+    "eslint-plugin-mocha": "^6.3.0",
+    "mocha": "^7.1.1",
+    "nock": "^12.0.3"
+  }
+}
