@@ -2,23 +2,21 @@ const nock = require('nock');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 
+const { integration: webhook } = require('./index');
+
+const mocks = require('./mocks');
+
 chai.use(chaiSubset);
 const { expect } = chai;
 
-const { integration: webhook } = require('./index');
 
-const campaignUuid = '830a1280-6e17-11ea-858b-f7d7d2f43749';
+const campaign = mocks.campaign();
+const campaignUuid = campaign.uuid;
 
-const donation = {
-	uuid: 'mock-donation-uuid',
-	user: { firstName: 'Alexandria', uuid: 'user-uuid' },
-	amount: 2050,
-	currency: 'AUD',
-	message: 'Good luck!',
-	profile: {
-		name: `Sam's profile`,
-	}
-};
+const subscription = mocks.subscription();
+const donation = mocks.donation();
+const profile = mocks.profile();
+profile.user = mocks.user();
 
 const secret = process.env.WEBHOOK_SECRET;
 
@@ -30,13 +28,16 @@ describe('Raisely Cloud Function', () => {
 	describe('WHEN donation.succeeded', () => {
 		before(async () => {
 			// Catch request to Raisely API
-			nockRequest = doNock('patch', `/donations/${donation.uuid}`);
+			nockRequest = doNock('patch', 'https://api.raisely.com/v3', `/donations/${donation.uuid}`);
 			({ req, res } = prepare({
 				secret,
 				data: {
 					type: 'donation.succeeded',
 					source: `campaign:${campaignUuid}`,
-					data: donation,
+					data: {
+						...donation,
+						profile,
+					}
 				},
 			}));
 
@@ -60,9 +61,8 @@ describe('Raisely Cloud Function', () => {
 	});
 
 	describe('WHEN subscription.succeeded', () => {
-		const subscription = { uuid: 'mock-subscription-uuid' };
 		before(async () => {
-			nockRequest = doNock('post', `/interactions`);
+			nockRequest = doNock('post', 'https://api.raisely.com/v3', `/interactions`);
 			({ req, res } = prepare({
 				secret,
 				data: {
@@ -127,9 +127,9 @@ function prepare(body) {
  * @param {string} method get, patch, post, etc
  * @param {string} path Path of the API request
  */
-function doNock(method, path) {
+function doNock(method, host, path) {
 	let result = {};
-	const n = nock('https://api.raisely.com/v3')
+	const n = nock(host)
 		.log(console.log)[method](path)
 		.reply(200, function donate(uri, requestBody) {
 			result.body = requestBody;
