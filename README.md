@@ -8,7 +8,7 @@ as a cloud function.
 
 ### Testing
 
-This also comes with an example test so you can write and deploy code ;-)
+This also comes with an example test so you can write and deploy well tested code ;-)
 
 To see the tests in action, do
 
