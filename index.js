@@ -67,12 +67,33 @@ exports.integration = async function integration(req, res) {
 
 	} else if (event.type === 'profile.totalUpdated') {
 		const profile = event.data;
-		const { user } = profile;
+		const { campaign, user } = profile;
 
+		// Do something if this is the update that hit the goal
+		if ((profile.lastTotalPercent < 100) && (profile.totalPercent >= 100)) {
+			request({
+				method: 'POST',
+				url: 'https://celebrate.example/fundraising',
+				json: {
+					name: user.fullName,
+					email: user.email,
+					message: `Congratulations on reaching your fundraising goal for ${campaign.name}!`,
+				},
+			});
+
+		}
 	} else if (event.type === 'profile.exerciseTotalUpdated') {
 		const profile = event.data;
 		const { user } = profile;
 
+		// Do something if they crossed 10km
+		if ((profile.lastExerciseTotal < 10000) && (profile.exerciseTotal >= 10000)) {
+			console.log(`${user.preferredName} ran 10km !`);
+		}
+		// Do something if they crossed 10 hours of exercise
+		if ((profile.lastExerciseTotal < 600) && (profile.exerciseTotal >= 600)) {
+			console.log(`${user.preferredName} exercised for 10 hours!`);
+		}
 	} else {
 		res.status(200).send({ success: false, error: `Unrecognised event ${event.type}` });
 		return true;

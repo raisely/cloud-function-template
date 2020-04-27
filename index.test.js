@@ -90,6 +90,71 @@ describe('Raisely Cloud Function', () => {
 		});
 	});
 
+	describe('WHEN profile.totalUpdated', () => {
+		const totalUpdatedPayload = {
+			source: `campaign:${campaignUuid}`,
+			type: 'profile.totalUpdated',
+			data: {
+				...profile,
+				lastTotalPercent: 90,
+				totalPercent: 100,
+				campaign,
+			},
+		}
+
+		describe('WHEN first donation over 100%', () => {
+			before(async () => {
+				nockRequest = doNock('post', 'https://celebrate.example', `/fundraising`);
+
+				({ req, res } = prepare({
+					secret,
+					data: totalUpdatedPayload,
+				}));
+
+				try {
+					result = await webhook(req, res);
+					return result;
+				} catch (e) {
+					console.error(e);
+					throw e;
+				}
+			});
+			itSucceeds();
+			it('celebrates the achievement', () => {
+				expect(nockRequest.body).to.containSubset({
+					name: profile.user.fullName,
+					email: profile.user.email,
+					message: `Congratulations on reaching your fundraising goal for ${campaign.name}!`,
+				});
+			});
+		});
+		describe('WHEN second donation over 100%', () => {
+			before(async () => {
+				nockRequest = doNock('post', 'https://celebrate.example', `/fundraising`);
+
+				// Update the last total so it no longer looks like it's crossed 100%
+				totalUpdatedPayload.data.lastTotalPercent = 100;
+
+				({ req, res } = prepare({
+					secret,
+					data: totalUpdatedPayload,
+				}));
+
+				try {
+					result = await webhook(req, res);
+					return result;
+				} catch (e) {
+					console.error(e);
+					throw e;
+				}
+			});
+			itSucceeds();
+			it('does not repeat the celebration', () => {
+				expect(nockRequest.body).to.be.undefined;
+			});
+		});
+	});
+
 	/**
 	 * Verify that the cloud function returns status 200 and a body of
 	 * { success: true }
